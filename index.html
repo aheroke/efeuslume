@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Efe | Kişisel Bilgiler</title>
+<meta name="description" content="Efe Uslu, dünyaya kendini tanıtıyor." />
+<meta name="theme-color" content="#5c94fc" />
+
+<!-- Open Graph -->
+<meta property="og:title" content="Efe | Kişisel Bilgiler" />
+<meta property="og:description" content="Efe Uslu, dünyaya kendini tanıtıyor." />
+<meta property="og:type" content="website" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=DotGothic16&display=swap" rel="stylesheet" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%235c94fc'/%3E%3Crect x='3' y='3' width='10' height='10' fill='%23ffd200'/%3E%3Crect x='5' y='4' width='6' height='2' fill='%23101a4c'/%3E%3Crect x='5' y='4' width='2' height='8' fill='%23101a4c'/%3E%3Crect x='5' y='7' width='5' height='2' fill='%23101a4c'/%3E%3Crect x='5' y='10' width='6' height='2' fill='%23101a4c'/%3E%3C/svg%3E" />
+
+<link rel="stylesheet" href="styles.css?v=responsive-20260615" />
+</head>
+<body>
+
+<!-- ============================== GAME ============================== -->
+<section id="game-screen" aria-label="Mini oyun">
+  <div id="stage">
+    <canvas id="game" width="256" height="240" aria-label="Efe World 1-1 platform oyunu"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" aria-hidden="true">
+      <div class="hud-left">
+        <span class="hud-chip" id="hud-facts">★ 0/6</span>
+        <span class="hud-chip" id="hud-coins">◉ 0</span>
+      </div>
+      <div class="hud-right">
+        <button id="mute-btn" class="hud-chip btn-bare" type="button" aria-label="Sesi aç/kapat">♪</button>
+        <span class="hud-chip hud-goal" data-i18n="hud.goal">⚑ KALE →</span>
+      </div>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touch" aria-hidden="true">
+      <div class="touch-cluster">
+        <button class="tbtn" data-key="left" aria-label="Sol">◀</button>
+        <button class="tbtn" data-key="right" aria-label="Sağ">▶</button>
+      </div>
+      <button class="tbtn tbtn-jump" data-key="jump" aria-label="Zıpla">A<small data-i18n="touch.jump">zıpla</small></button>
+    </div>
+
+    <!-- START overlay -->
+    <div id="start" class="overlay">
+      <div class="panel panel-start">
+        <button class="lang-toggle lang-toggle-start" type="button" aria-label="Language">EN</button>
+        <p class="eyebrow" data-i18n="start.eyebrow">EFE WORLD &nbsp;1-1</p>
+        <h1 class="start-title" data-i18n="start.title" data-i18n-html>BENİ TANIMAK İÇİN<br />KÜÇÜK BİR OYUNA<br /><span class="accent">VAR MISIN?</span></h1>
+        <p class="start-sub" data-i18n="start.sub" data-i18n-html>? bloklara kafanı vur, düşmanların üstüne zıpla,<br />bayrağa ulaş. Beni yol boyunca tanı.</p>
+        <button id="play-btn" class="pxbtn pxbtn-primary" type="button" data-i18n="start.play">▶ OYNA</button>
+        <div class="start-controls kb-only">
+          <span data-i18n="start.kb1" data-i18n-html><b>← →</b> / <b>A D</b> yürü</span>
+          <span data-i18n="start.kb2" data-i18n-html><b>BOŞLUK</b> / <b>↑</b> / <b>W</b> zıpla</span>
+        </div>
+        <div class="start-controls touch-only">
+          <span data-i18n="start.touch1" data-i18n-html><b>◀ ▶</b> yürü</span>
+          <span data-i18n="start.touch2" data-i18n-html><b>Ⓐ</b> zıpla</span>
+        </div>
+        <button id="skip-btn" class="textlink" type="button" data-i18n="start.skip">veya doğrudan siteye geç →</button>
+      </div>
+    </div>
+
+    <!-- Info / quiz POPUP -->
+    <div id="popup" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+      <div class="panel panel-popup">
+        <span class="popup-kind" id="popup-kind">SORU</span>
+        <h2 class="popup-title" id="popup-title">Başlık</h2>
+        <div class="quiz-options hidden" id="quiz-options" role="group" aria-label="Cevap seçenekleri"></div>
+        <p class="popup-body hidden" id="popup-body">İçerik</p>
+        <a class="popup-link hidden" id="popup-link" target="_blank" rel="noopener">Ziyaret et →</a>
+        <button id="popup-continue" class="pxbtn hidden" type="button">DEVAM ▶</button>
+      </div>
+    </div>
+
+    <!-- END splash -->
+    <div id="end" class="overlay hidden">
+      <div class="end-inner">
+        <p class="end-eyebrow">日本一！ &nbsp;LEVEL CLEAR</p>
+        <h1 class="end-title" data-i18n="end.title">HARİKASIN!</h1>
+        <p class="end-sub" data-i18n="end.sub">Beni tanımaya zaman ayırdığın için teşekkürler.</p>
+        <div class="end-stats">
+          <span id="end-facts">★ 0</span>
+          <span id="end-projects">⚑ 0</span>
+          <span id="end-coins">◉ 0</span>
+        </div>
+        <button id="enter-btn" class="pxbtn pxbtn-primary" type="button" data-i18n="end.enter">SİTEYE GİR ▶</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SITE ============================== -->
+<main id="site">
+  <!-- Top nav -->
+  <header class="nav">
+    <a class="nav-logo" href="#top"><span class="nav-mark">?</span> EFE.USLU</a>
+    <nav class="nav-links">
+      <a href="#about" data-i18n="nav.about">Hakkımda</a>
+      <a href="#fun" data-i18n="nav.fun">Fun Zone</a>
+      <a href="#work" data-i18n="nav.work">Dünyalar</a>
+      <a href="#projects" data-i18n="nav.projects">Projeler</a>
+      <a href="#contact" data-i18n="nav.contact">İletişim</a>
+    </nav>
+    <button class="lang-toggle" type="button" aria-label="Language">EN</button>
+    <button id="replay-btn" class="nav-replay" type="button" data-i18n="nav.replay">↻ Oyunu oyna</button>
+  </header>
+
+  <!-- HERO -->
+  <section id="top" class="hero">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow eyebrow-dark">PLAYER 1 &nbsp;·&nbsp; BURSA → TSUKUBA</p>
+        <h1 class="hero-name">EFE&nbsp;USLU</h1>
+        <p class="hero-role" data-i18n="hero.role" data-i18n-html>Control Engineer <span class="x">×</span> Full-stack Geliştirici</p>
+        <p class="hero-lead" data-i18n="hero.lead">Şu anda Tsukuba Üniversitesi Digital Control Lab'de çalışıyorum ve System and Information Engineering alanında, Intelligent and Mechanical Interaction Systems dalında master yapıyorum. Kod yazmak ve site tasarlamak kişisel hobim.</p>
+        <div class="hero-cta">
+          <a class="pxbtn pxbtn-primary" href="#projects" data-i18n="hero.cta1">Projelerime bak</a>
+          <a class="pxbtn" href="mailto:usluahmet00@gmail.com" data-i18n="hero.cta2">Bana yaz</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-avatar" id="hero-avatar"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="section">
+    <p class="kicker" data-i18n="about.kicker">01 — HAKKIMDA</p>
+    <div class="about-grid">
+      <h2 class="section-h" data-i18n="about.heading">Kısaca ben.</h2>
+      <div class="about-text">
+        <p data-i18n="about.body" data-i18n-html>Adım Efe. Bursalıyım, şu an Japonya'dayım. Bunlar çok mühim şeyler değil. Önemli şeylere gelecek olursak: en sevdiğim Hasır Şapka üyesi <b>Brook</b>, Persona 4'te favori waifum ise her zaman <b>Yukiko</b> olacak. En önemlisi de League of Legends'ta <b>Lillia</b> ile 750k uzmanlık puanım var — S24 · TR 23. · Dünya 127. Ve maalesef Fenerbahçeliyim; tedavi olmaya çalışıyorum.</p>
+        <ul class="quick-facts">
+          <li data-i18n="about.fact1">YTÜ · Kontrol &amp; Otomasyon (2018–2024)</li>
+          <li data-i18n="about.fact2">Türkçe · English · 日本語 (N5)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUN ZONE — the useless trivia, right after the intro -->
+  <section id="fun" class="section section-fun">
+    <p class="kicker kicker-light" data-i18n="fun.kicker">02 — FUN ZONE</p>
+    <h2 class="section-h section-h-wide section-h-light" data-i18n="fun.heading">Birini tanımak için en gereksiz şeyleri bilmelisin.</h2>
+    <div class="fun-grid">
+      <article class="fun-card fun-fb">
+        <h3 data-i18n="fun.c1.t">Çılgın teori</h3>
+        <p data-i18n="fun.c1.b">En büyük teorim: atomlar da aslında bizim gibi birer yıldız sistemi, hatta birer evren. Bizden büyük evrenler de, tıpkı bizim atomları gözlediğimiz gibi bizi gözlüyor — boyut ve zaman farkından tam göremiyorlar sadece.</p>
+      </article>
+      <article class="fun-card fun-op">
+        <h3 data-i18n="fun.c2.t">Yiyemediğim 3 şey</h3>
+        <p data-i18n="fun.c2.b">Karnabahar, tahin ve kestane. Dünyada yiyemediğim sadece bu üç şey var.</p>
+      </article>
+      <article class="fun-card fun-p4">
+        <h3 data-i18n="fun.c3.t">7 ölümcül günah</h3>
+        <p data-i18n="fun.c3.b">İçlerinden bana en çok yakışanlar büyük ihtimalle kibir ve tembellik.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- JOURNEY — life told as Mario worlds -->
+  <section id="work" class="section">
+    <p class="kicker" data-i18n="work.kicker">03 — DÜNYALAR</p>
+    <h2 class="section-h section-h-wide">Bursa → İstanbul → Tsukuba</h2>
+    <ol class="timeline">
+      <li class="tl-item">
+        <span class="tl-when">2000 — 2018</span>
+        <div class="tl-body">
+          <h3>Bursa <span class="tl-co">· World 1</span></h3>
+          <p data-i18n="work.w1">Dünyanın en güzel şehrinin en güzel semti Gemlik'te; asırlar boyu konuşulacak, destansı bir 18 yıl.</p>
+        </div>
+      </li>
+      <li class="tl-item">
+        <span class="tl-when">2018 — 2025</span>
+        <div class="tl-body">
+          <h3>İstanbul <span class="tl-co">· World 2</span></h3>
+          <p data-i18n="work.w2">Duraklama dönemi. Kaos ve stres içinde geçen 6 yıl.</p>
+        </div>
+      </li>
+      <li class="tl-item">
+        <span class="tl-when">2026 —</span>
+        <div class="tl-body">
+          <h3>Tsukuba <span class="tl-co">· World 3</span></h3>
+          <p data-i18n="work.w3">Yükseliş ve huzur dönemi. Destanların yenisini yazmak için güç toplama çağı.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" class="section">
+    <p class="kicker" data-i18n="projects.kicker">04 — PROJELER</p>
+    <h2 class="section-h section-h-wide" data-i18n="projects.heading">Yaptığım işler</h2>
+    <div class="proj-grid">
+      <article class="proj-card">
+        <div class="proj-logo" style="--lg:#2aa53a;--lg2:#176b25;">A</div>
+        <h3>Anlametre</h3>
+        <p data-i18n="proj.anlametre">Günlük Türkçe kelime tahmin oyunu — gizli kelimeyi anlamca yakın kelimelerle bul. UI/UX, backend ve veritabanını tek başıma kurdum. fastText kelime vektörleriyle NLP tabanlı benzerlik skoru.</p>
+        <div class="proj-tags"><span>JavaScript</span><span>Python</span><span>fastText</span><span>NLP</span></div>
+        <a class="proj-link" href="https://anlametre.tech" target="_blank" rel="noopener">anlametre.tech →</a>
+      </article>
+      <article class="proj-card">
+        <div class="proj-logo" style="--lg:#ffd200;--lg2:#e0a800;color:#101a4c;">A</div>
+        <h3>Arada</h3>
+        <p data-i18n="proj.arada" data-i18n-html>Günlük kelime bulmaca uygulaması — sözlükte iki kelimenin <em>arasına</em> alfabetik olarak giren kelimeyi tahmin et. iOS uygulaması; tüm geliştirme süreçlerini tek başıma yürüttüm.</p>
+        <div class="proj-tags"><span>iOS</span><span>UI/UX</span><span>Firebase</span><span>Backend</span></div>
+        <a class="proj-link" href="https://apps.apple.com/us/app/arada-kelime-oyunu/id6749009793" target="_blank" rel="noopener">App Store →</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- ARSENAL / CEPHANELİK -->
+  <section id="skills" class="section">
+    <p class="kicker" data-i18n="skills.kicker">05 — CEPHANELİK</p>
+    <div class="skills-grid">
+      <div class="skill-col">
+        <h4 data-i18n="skills.col1">Programlama</h4>
+        <div class="badges"><span>Python</span><span>JavaScript</span><span>MATLAB</span><span>Arduino</span><span>HTML/CSS</span></div>
+      </div>
+      <div class="skill-col">
+        <h4 data-i18n="skills.col2">Araçlar</h4>
+        <div class="badges"><span>Git</span><span>VS Code</span><span>Cursor</span><span>Claude Code</span><span>TIA Portal</span><span>PC-WORX</span><span>CX Programmer</span><span>Firebase</span><span>WordPress</span></div>
+      </div>
+      <div class="skill-col">
+        <h4 data-i18n="skills.col3">Teknolojiler</h4>
+        <div class="badges"><span data-i18n="skill.control">Kontrol Sistemleri</span><span data-i18n="skill.automation">Otomasyon</span><span>PLC</span><span data-i18n="skill.softrobotics">Soft Robotik</span><span data-i18n="skill.imaging">Görüntü İşleme</span><span>Web Dev</span><span>AI Agents</span><span>Prompt Eng.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="section section-contact">
+    <p class="kicker" data-i18n="contact.kicker">06 — İLETİŞİM</p>
+    <h2 class="section-h section-h-wide" data-i18n="contact.heading">Bir sonraki level birlikte mi?</h2>
+    <p class="contact-lead" data-i18n="contact.lead">Akademik, bilimsel veya iyi bir One Piece tartışması için her zaman müsaitim.</p>
+    <div class="contact-links">
+      <a class="contact-btn" href="mailto:usluahmet00@gmail.com">usluahmet00@gmail.com</a>
+    </div>
+    <button id="replay-btn-2" class="pxbtn pxbtn-primary contact-replay" type="button" data-i18n="contact.replay">↻ Oyunu tekrar oyna</button>
+  </section>
+
+  <footer class="footer">
+    <span>© <span id="year">2026</span> Efe Uslu · efeuslu.me</span>
+    <span class="footer-note" data-i18n="footer.note">Press Start 2P ile yapıldı</span>
+  </footer>
+</main>
+
+<script src="game.js?v=player-hq-canvas-20260615"></script>
+</body>
+</html>

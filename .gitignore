@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Editor / local tooling
+.claude/
+
+# Build artifacts / packaged uploads
+efeuslu-me-hostinger.zip
+*.zip
