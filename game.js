@@ -629,7 +629,7 @@ function updateCoins() {
 function startOutro() {
   outro = { phase: 'slide', t: 0, flag: flagX, py: player.y };
   paused = false; keys.left = keys.right = false;
-  player.vx = 0; player.hurt = 0; player.face = 1; SFX.clear();
+  player.vx = 0; player.hurt = 0; player.invuln = 0; player.face = 1; SFX.clear();
   player.animState = 'jump'; player.animT = 0;     // reaching for the pole
 }
 function stepOutro() {
@@ -1069,6 +1069,15 @@ $('mute-btn').addEventListener('click', () => {
   muted = !muted;
   $('mute-btn').textContent = muted ? '♪̸' : '♪';
   $('mute-btn').classList.toggle('muted', muted);
+});
+// castle chip: skip ahead — Efe lands on top of the flagpole and the finale plays
+$('goal-btn').addEventListener('click', e => {
+  e.currentTarget.blur();                          // Space should jump, not press this again
+  if (!running || paused || outro) return;
+  player.x = flagX - player.w - 1; player.y = 4 * T;
+  player.vx = player.vy = 0;
+  cam = Math.max(0, Math.min(player.x - 96, W * T - VIEW_W));
+  startOutro();
 });
 document.querySelectorAll('.lang-toggle').forEach(b =>
   b.addEventListener('click', () => applyLang(lang === 'tr' ? 'en' : 'tr')));

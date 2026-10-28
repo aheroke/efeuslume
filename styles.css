@@ -121,6 +121,7 @@ body.mode-game #site { display: none; }
 }
 .hud-goal { color: var(--p4); }
 .btn-bare { pointer-events: auto; cursor: pointer; }
+.btn-bare:active { transform: translate(2px, 2px); box-shadow: none; }
 .btn-bare.muted { opacity: .45; }
 
 /* Touch controls -------------------------------------------------- */
