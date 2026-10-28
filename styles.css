@@ -529,12 +529,9 @@ body.warping #site { animation: warp-in .6s ease both; }
 
 .hero-art { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 .hero-avatar {
-  width: clamp(140px, 22vw, 200px);
-  aspect-ratio: 1;
-  image-rendering: pixelated;
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: contain;
+  width: clamp(200px, 28vw, 320px);
+  height: auto;
+  image-rendering: auto;              /* a painting, not pixel art — beats the global img rule */
   filter: drop-shadow(5px 5px 0 rgba(16,26,76,.5));
   animation: hover-bob 2.2s ease-in-out infinite;
 }

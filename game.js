@@ -1,7 +1,8 @@
 /* =================================================================
    EFE WORLD 1-1  —  a playable résumé
-   Vanilla canvas platformer. No dependencies, no asset files.
-   Hero = straw-hat (One Piece) × Mario. Palette threads the
+   Vanilla canvas platformer. No dependencies; the only asset files are
+   Efe's sprite atlas + site art in assets/efe (tools/build_sprites.py).
+   Hero = Efe himself × Mario. Palette threads the
    Persona-4 / Fenerbahçe yellow throughout.
    ================================================================= */
 (() => {
@@ -130,8 +131,8 @@ const META = {
  *  normalizeSprite() pads every row so a miscount can't break art.
  * ---------------------------------------------------------------- */
 const PAL = {
-  // straw hat hero
-  h: '#d49a2a', H: '#f4c542', R: '#e52521', S: '#f4c28c', s: '#d99a63',
+  // stand-in mini Efe (only drawn until the sprite atlas loads)
+  h: '#3b2418', H: '#6b4128', R: '#e52521', S: '#f4c28c', s: '#d99a63',
   E: '#1a1024', B: '#2f63d6', N: '#101a4c',
   // turtle
   G: '#2aa53a', g: '#176b25', Y: '#ffe08a', F: '#e0b84a', W: '#ffffff',
@@ -143,137 +144,53 @@ function normalizeSprite(rows, w) {
   return rows.map(r => (r.length >= w ? r.slice(0, w) : r + '.'.repeat(w - r.length)));
 }
 
+// tiny stand-in, feet on the bottom row; drawHero() uses it until the atlas loads
 const HERO = normalizeSprite([
-  '................',
-  '.....hhhhh......',
-  '....hHHHHHh.....',
-  '...hHHHHHHHh....',
-  '..hHHHHHHHHHh...',
-  '..RRRRRRRRRRR...',
-  '...sSSSSSSSs....',
-  '...SESSSSESS....',
-  '...SSSSSSSSS....',
+  '....hhhhhh......',
+  '...hhHhhHhh.....',
+  '..hhhhhhhhhh....',
+  '..hhhhhhhhhh....',
+  '..hhSSSSSShh....',
+  '..hSSESSSESh....',
+  '...SSSSSSSS.....',
   '....sSSSSs......',
+  '...RRRWWRRR.....',
+  '..SRRRWWRRRS....',
+  '..SRRRWWRRRS....',
   '...RRRRRRRR.....',
-  '..SRRRRRRRRS....',
-  '..SRRRRRRRRS....',
-  '...BBBBBBBB.....',
-  '...BBB..BBB.....',
-  '..NNNN..NNNN....',
-], 16);
-
-// straw-hat overlay — drawn on top of the sprite-sheet hero's head so the
-// One Piece identity survives whatever base character is used.
-const HAT = normalizeSprite([
-  '.....hhhhh......',
-  '....hHHHHHh.....',
-  '...hHHHHHHHh....',
-  '..hHHHHHHHHHh...',
-  '..RRRRRRRRRRR...',
+  '...NNNNNNNN.....',
+  '...NNN..NNN.....',
+  '...NNN..NNN.....',
+  '..WWWR..WWWR....',
 ], 16);
 
 /* ---------------------------------------------------------------- *
- *  ANIMATED HERO SPRITES  (optional; falls back to procedural HERO)
- *  To swap in a different character, update the per-animation entries below.
- *  - src     = sprite strip, with { fw, fh, frames }
- *  - srcs    = separate single-frame pose PNGs
- *  - drawW/H = in-game rendered size; the collision box remains gameplay-sized
- *  - anchorX/Y = the character's "feet centre" inside a source frame
+ *  HERO SPRITES — one atlas, built by tools/build_sprites.py from
+ *  assets/animationsheet.png. Each frame sits in a cw×ch cell with the
+ *  soles on the cell's bottom edge and the head centred, so frames never
+ *  jitter and mirroring never shifts. density = atlas px per game px.
+ *  anims: atlas row, frames to play (sheet order, 0-based), fps.
  * ---------------------------------------------------------------- */
 const HERO_SHEET = {
-  enabled: true,
-  spriteScale: 2,
+  src: 'assets/efe/sprites.webp?v=efe-20261029-hd',
+  cw: 200, ch: 155, density: 5,
   anims: {
-    idle: { src: 'assets/Player/Poses/player_idle.png?v=player-3', fw: 80, fh: 110, frames: 1, fps: 2, drawW: 26, drawH: 32, contentH: 30 },
-    run:  { srcs: ['assets/Player/Poses/player_walk1.png?v=player-3', 'assets/Player/Poses/player_stand.png?v=player-3', 'assets/Player/Poses/player_walk2.png?v=player-3', 'assets/Player/Poses/player_stand.png?v=player-3'], fw: 80, fh: 110, fps: 10, drawW: 26, drawH: 32, contentH: 30 },
-    jump: { src: 'assets/Player/Poses/player_jump.png?v=player-3', fw: 80, fh: 110, frames: 1, fps: 1, drawW: 26, drawH: 32, contentH: 30 },
-    fall: { src: 'assets/Player/Poses/player_fall.png?v=player-3', fw: 80, fh: 110, frames: 1, fps: 1, drawW: 26, drawH: 32, contentH: 30 },
+    idle: { row: 0, frames: [0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 3, 4, 5], fps: 8 },
+    walk: { row: 1, frames: [0, 1, 2, 3, 4, 5, 6, 7], fps: 20 },   // matches the outro's 1.4 px/frame
+    run:  { row: 2, frames: [0, 1, 2, 3, 4, 5, 6, 7], fps: 18 },   // at full speed
+    jump: { row: 3, frames: [2], fps: 1 },
+    apex: { row: 3, frames: [3], fps: 1 },
+    fall: { row: 3, frames: [4], fps: 1 },
+    land: { row: 4, frames: [1], fps: 1 },
+    hurt: { row: 4, frames: [0], fps: 1 },
+    win:  { row: 5, frames: [1, 2, 3, 4, 3, 2], fps: 8 },
   },
-  anchorX: 40, anchorY: 110,         // 80x110 source frame, feet centred at bottom
-  hat: { on: false, dx: 0, dy: 0 },
 };
-const heroImgs = {};                 // src -> { img, ready, broken }
-const heroFrames = {};               // anim -> [{ canvas, w, h, anchorX, anchorY }]
-function heroAnimSources(a) { return a ? (a.srcs || [a.src]) : []; }
-function heroAnimFrames(a) { return a ? (a.srcs ? a.srcs.length : (a.frames || 1)) : 0; }
-function heroAnimFrame(a) {
-  const frames = heroAnimFrames(a);
-  const fi = frames ? Math.floor(player.animT / (60 / a.fps)) % frames : 0;
-  return { fi, src: a.srcs ? a.srcs[fi] : a.src, sx: a.srcs ? 0 : fi * a.fw };
-}
+const heroImg = new Image();
+let heroReady = false;
 function loadHeroSheet() {
-  if (!HERO_SHEET.enabled) return;
-  for (const k in HERO_SHEET.anims) {
-    for (const src of heroAnimSources(HERO_SHEET.anims[k])) {
-      if (heroImgs[src]) continue;
-      const rec = { ready: false, broken: false, img: new Image() };
-      rec.img.onload = () => { rec.ready = true; rebuildHeroFrames(); onHeroSheetReady(); };
-      rec.img.onerror = () => { rec.broken = true; };
-      rec.img.src = src;
-      heroImgs[src] = rec;
-    }
-  }
-}
-function heroAnimReady(a) {
-  const sources = heroAnimSources(a);
-  return sources.length > 0 && sources.every(src => heroImgs[src] && heroImgs[src].ready);
-}
-function heroFramesReady(name) {
-  const frames = heroFrames[name];
-  return frames && frames.length === heroAnimFrames(HERO_SHEET.anims[name]);
-}
-function heroSourceBBox(img, sx, fw, fh) {
-  const c = document.createElement('canvas');
-  c.width = fw; c.height = fh;
-  const x = c.getContext('2d');
-  x.drawImage(img, sx, 0, fw, fh, 0, 0, fw, fh);
-  const data = x.getImageData(0, 0, fw, fh).data;
-  let minX = fw, minY = fh, maxX = -1, maxY = -1;
-  for (let y = 0; y < fh; y++) {
-    for (let x0 = 0; x0 < fw; x0++) {
-      if (data[(y * fw + x0) * 4 + 3] < 12) continue;
-      if (x0 < minX) minX = x0;
-      if (x0 > maxX) maxX = x0;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
-  }
-  return maxX >= 0 ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : { x: 0, y: 0, w: fw, h: fh };
-}
-function rebuildHeroFrames() {
-  for (const name in HERO_SHEET.anims) {
-    const a = HERO_SHEET.anims[name];
-    if (!heroAnimReady(a)) continue;
-    const dw = a.drawW || a.fw;
-    const dh = a.drawH || a.fh;
-    heroFrames[name] = Array.from({ length: heroAnimFrames(a) }, (_, fi) => {
-      const frame = {
-        fi,
-        src: a.srcs ? a.srcs[fi] : a.src,
-        sx: a.srcs ? 0 : fi * a.fw,
-      };
-      const spriteScale = HERO_SHEET.spriteScale || 1;
-      const c = document.createElement('canvas');
-      c.width = dw * spriteScale; c.height = dh * spriteScale;
-      const x = c.getContext('2d');
-      const img = heroImgs[frame.src].img;
-      const bbox = heroSourceBBox(img, frame.sx, a.fw, a.fh);
-      const contentH = (a.contentH || dh) * spriteScale;
-      const contentW = Math.max(1, Math.round((bbox.w / bbox.h) * contentH));
-      const dx = Math.round((c.width - contentW) / 2);
-      const dy = c.height - contentH;
-      x.imageSmoothingEnabled = true;
-      x.imageSmoothingQuality = 'high';
-      x.drawImage(img, frame.sx + bbox.x, bbox.y, bbox.w, bbox.h, dx, dy, contentW, contentH);
-      return {
-        canvas: c,
-        w: dw,
-        h: dh,
-        anchorX: Math.round(dw / 2),
-        anchorY: dh,
-      };
-    });
-  }
+  heroImg.onload = () => { heroReady = true; };
+  heroImg.src = HERO_SHEET.src;
 }
 
 const TURTLE = normalizeSprite([
@@ -328,7 +245,7 @@ const QGLYPH = [
  * ---------------------------------------------------------------- */
 const T = 16;                 // tile size
 const VIEW_W = 256, VIEW_H = 240;
-const RENDER_SCALE = 2;       // higher backing resolution, same logical game size
+const MAX_RENDER_SCALE = 6;   // backing px per game px follows the screen (see fitCanvas), capped here
 const ROWS = 15;
 const GRAVITY = 0.46;
 const MOVE = 0.30, MAXVX = 1.95, AIR = 0.22;
@@ -430,8 +347,10 @@ function solidAt(px, py) {
 /* ---------------------------------------------------------------- *
  *  STATE
  * ---------------------------------------------------------------- */
-const player = { x: 0, y: 0, w: 11, h: 15, vx: 0, vy: 0, grounded: false,
-                 face: 1, coyote: 0, invuln: 0, animT: 0, animState: 'idle', squash: 0 };
+// h matches the drawn body (hair tips aside), so the head bumps ? blocks where it touches them
+const player = { x: 0, y: 0, w: 11, h: 26, vx: 0, vy: 0, grounded: false,
+                 face: 1, coyote: 0, invuln: 0, animT: 0, animState: 'idle', squash: 0,
+                 hurt: 0, land: 0 };
 let cam = 0, frame = 0;
 let running = false, paused = false;
 let outro = null;             // {phase, t}
@@ -451,6 +370,7 @@ function resetGame() {
   buildLevel();
   player.x = startX; player.y = (GROUND - 2) * T;
   player.vx = player.vy = 0; player.face = 1; player.invuln = 0; player.squash = 0;
+  player.hurt = player.land = 0;
   player.animT = 0; player.animState = 'idle';
   cam = 0; outro = null; paused = false;
   particles = []; pending = []; shake = 0; flash = 0; frame = 0; quizState = null;
@@ -567,17 +487,23 @@ function update() {
   if (!keys.jumpHeld && player.vy < 0) { player.vy *= JUMP_CUT; }
 
   // --- gravity ---
+  const airborne = !player.grounded;
   player.vy = Math.min(player.vy + GRAVITY, 9);
+  const fallSpeed = player.vy;
   player.grounded = false;
   collideY();
+  if (airborne && player.grounded && fallSpeed > 5) player.land = 8;   // hard landing → brief crouch
 
   if (player.grounded && player.vy >= 0) safe = { x: player.x, y: player.y - 2 };
-  // hero animation state → drives sprite-sheet frame selection
+  // hero animation state → picks the atlas row + frames in drawHero()
   let astate = 'idle';
-  if (!player.grounded) astate = player.vy < 0 ? 'jump' : 'fall';
+  if (player.hurt > 0) { astate = 'hurt'; player.hurt--; }
+  else if (!player.grounded) astate = player.vy < -1.5 ? 'jump' : player.vy < 1.5 ? 'apex' : 'fall';
   else if (Math.abs(player.vx) > 0.3) astate = 'run';
+  else if (player.land > 0) astate = 'land';
+  if (player.land > 0) player.land--;
   if (astate !== player.animState) { player.animState = astate; player.animT = 0; }
-  else player.animT++;
+  else player.animT += astate === 'run' ? Math.abs(player.vx) / MAXVX : 1;   // stride follows speed
 
   // --- fell in a pit ---
   if (player.y > VIEW_H + 40) respawn();
@@ -681,7 +607,7 @@ function updateEnemies() {
         schedule(18, () => openInfo(rev.type, rev.data));  // squash plays first
       } else {
         // gentle knockback, no death — clear feedback
-        player.vx = (player.x < e.x ? -1 : 1) * 2.6; player.vy = -3.4; player.invuln = 72;
+        player.vx = (player.x < e.x ? -1 : 1) * 2.6; player.vy = -3.4; player.invuln = 72; player.hurt = 24;
         shakeIt(4); flashIt(10); SFX.hurt();
         burst(player.x + player.w / 2, player.y + player.h / 2, '#ff5b4f', 9);
       }
@@ -699,20 +625,29 @@ function updateCoins() {
   }
 }
 
-/* ----- outro: slide pole → walk to castle → splash ----- */
+/* ----- outro: slide pole → cheer → walk to castle → splash ----- */
 function startOutro() {
   outro = { phase: 'slide', t: 0, flag: flagX, py: player.y };
   paused = false; keys.left = keys.right = false;
-  player.vx = 0; SFX.clear();
+  player.vx = 0; player.hurt = 0; player.face = 1; SFX.clear();
+  player.animState = 'jump'; player.animT = 0;     // reaching for the pole
 }
 function stepOutro() {
   outro.t++;
+  const floor = GROUND * T - player.h;             // feet on the ground row
   if (outro.phase === 'slide') {
     player.x = flagX - player.w - 1;
-    player.y = Math.min(player.y + 2.2, (GROUND - 1) * T - player.h);
-    if (player.y >= (GROUND - 1) * T - player.h) { outro.phase = 'walk'; outro.t = 0; }
+    player.y = Math.min(player.y + 2.2, floor);
+    if (player.y >= floor) {
+      outro.phase = 'cheer'; outro.t = 0;
+      player.animState = 'win'; player.animT = 0;
+      burst(player.x + player.w / 2, player.y, '#ffd200', 14);
+    }
+  } else if (outro.phase === 'cheer') {
+    player.animT++;
+    if (outro.t > 60) { outro.phase = 'walk'; outro.t = 0; player.animState = 'walk'; player.animT = 0; }
   } else if (outro.phase === 'walk') {
-    player.face = 1; player.x += 1.4; player.animState = 'run'; player.animT++;
+    player.x += 1.4; player.animT++;
     cam = Math.max(0, Math.min(player.x - 96, W * T - VIEW_W));
     if (player.x >= castleX + 8) { outro.phase = 'enter'; outro.t = 0; }
   } else if (outro.phase === 'enter') {
@@ -724,10 +659,24 @@ function stepOutro() {
  *  RENDER
  * ---------------------------------------------------------------- */
 const cv = document.getElementById('game');
-cv.width = VIEW_W * RENDER_SCALE;
-cv.height = VIEW_H * RENDER_SCALE;
 const ctx = cv.getContext('2d');
 ctx.imageSmoothingEnabled = false;
+
+// Back the canvas with as many pixels as it covers on screen (whole multiple of
+// the game size, so pixel-art edges stay on the grid) — that's what lets the
+// hero's high-res atlas actually show its detail.
+let renderScale = 2;
+function fitCanvas() {
+  const r = cv.getBoundingClientRect();
+  const shownH = Math.min(r.height, r.width * VIEW_H / VIEW_W);   // object-fit: contain
+  if (!shownH) return;                                              // hidden (site mode)
+  const s = Math.max(2, Math.min(MAX_RENDER_SCALE, Math.round(shownH * (window.devicePixelRatio || 1) / VIEW_H)));
+  if (cv.width === VIEW_W * s) return;
+  renderScale = s;
+  cv.width = VIEW_W * s; cv.height = VIEW_H * s;
+}
+fitCanvas();
+new ResizeObserver(fitCanvas).observe(cv);
 
 function px(c) { return PAL[c]; }
 function drawSprite(sp, dx, dy, flip) {
@@ -744,56 +693,29 @@ function drawSprite(sp, dx, dy, flip) {
   }
 }
 
-// draw the hero: animated sprite sheet if loaded, else the procedural HERO
+// draw the hero with its feet centre on the hitbox's bottom centre: an atlas
+// cell when loaded, else the tiny procedural HERO
 function drawHero(ox) {
-  const sheet = HERO_SHEET;
-  const state = player.animState;
-  const a = sheet.enabled ? sheet.anims[state] : null;
-  if (!heroFramesReady(state)) {                    // fallback — never breaks
-    drawSprite(HERO, player.x - ox - 2, player.y - 1, player.face < 0);
+  const fx = player.x - ox + player.w / 2, fy = player.y + player.h;
+  const flip = player.face < 0;
+  if (!heroReady) {
+    drawSprite(HERO, Math.round(fx - 8), Math.round(fy - 16), flip);
     return;
   }
-  const frame = heroFrames[state][heroAnimFrame(a).fi];
-  const flip = player.face < 0;
-  const dx = Math.round(player.x - ox + player.w / 2 - frame.anchorX);
-  const dy = Math.round(player.y + player.h - frame.anchorY);
-  ctx.imageSmoothingEnabled = false;
-  if (flip) {
-    ctx.save(); ctx.translate(dx + frame.w, dy); ctx.scale(-1, 1);
-    ctx.drawImage(frame.canvas, 0, 0, frame.w, frame.h);
-    ctx.restore();
-  } else {
-    ctx.drawImage(frame.canvas, dx, dy, frame.w, frame.h);
-  }
-  if (sheet.hat.on) {                               // straw-hat overlay on the head
-    const hx = dx + (frame.w - 16) / 2 + sheet.hat.dx;
-    drawSprite(HAT, hx, dy + sheet.hat.dy, flip);
-  }
-}
-
-// rebuild the site avatar from the loaded idle frame; falls back to the
-// procedural avatar set in boot() until the sheet is ready.
-function onHeroSheetReady() {
-  const a = HERO_SHEET.anims.idle;
-  if (!heroAnimReady(a)) return;
-  const frame = heroAnimFrame(a);
-  const s = 1, c = document.createElement('canvas');
-  c.width = a.fw; c.height = a.fh;
-  const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
-  x.drawImage(heroImgs[frame.src].img, frame.sx, 0, a.fw, a.fh, 0, 0, a.fw, a.fh);
-  if (HERO_SHEET.hat.on) {
-    for (let r = 0; r < HAT.length; r++) for (let col = 0; col < 16; col++) {
-      const ch = HAT[r][col]; if (ch === '.' || ch === undefined) continue;
-      x.fillStyle = PAL[ch];
-      x.fillRect((col + (a.fw - 16) / 2) * s, (r + HERO_SHEET.hat.dy) * s, s, s);
-    }
-  }
-  const av = document.getElementById('hero-avatar');
-  if (av) av.style.backgroundImage = 'url(' + c.toDataURL() + ')';
+  const s = HERO_SHEET, a = s.anims[player.animState] || s.anims.idle;
+  const col = a.frames[Math.floor(player.animT * a.fps / 60) % a.frames.length];
+  const w = s.cw / s.density, h = s.ch / s.density;
+  ctx.save();
+  ctx.translate(Math.round(fx - w / 2) + (flip ? w : 0), Math.round(fy - h));
+  if (flip) ctx.scale(-1, 1);
+  ctx.imageSmoothingEnabled = true;                 // a painting: resample it smoothly to the screen
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(heroImg, col * s.cw, a.row * s.ch, s.cw, s.ch, 0, 0, w, h);
+  ctx.restore();
 }
 
 function render() {
-  ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+  ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   ctx.imageSmoothingEnabled = false;
   // sky — drawn full-bleed and never shaken
   const g = ctx.createLinearGradient(0, 0, 0, VIEW_H);
@@ -1176,24 +1098,10 @@ addEventListener('keydown', e => {
   }
 });
 
-/* turn a sprite into a crisp data-URL for use in the DOM (hero avatar) */
-function spriteDataURL(sp, scale) {
-  const w = sp[0].length, h = sp.length;
-  const c = document.createElement('canvas'); c.width = w * scale; c.height = h * scale;
-  const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
-  for (let r = 0; r < h; r++) for (let col = 0; col < w; col++) {
-    const ch = sp[r][col]; if (ch === '.' || ch === undefined) continue;
-    x.fillStyle = PAL[ch]; x.fillRect(col * scale, r * scale, scale, scale);
-  }
-  return c.toDataURL();
-}
-
 /* ----- boot ----- */
 function boot() {
   $('year').textContent = String(new Date().getFullYear());
-  const av = $('hero-avatar');
-  if (av) av.style.backgroundImage = 'url(' + spriteDataURL(HERO, 14) + ')';
-  loadHeroSheet();                       // async; upgrades hero + avatar when ready
+  loadHeroSheet();                       // async; the procedural HERO stands in until then
   captureSiteTR();                       // snapshot authored Turkish, then pick a language
   let saved = null; try { saved = localStorage.getItem('efe-lang'); } catch (e) {}
   applyLang(saved === 'en' ? 'en' : 'tr');   // sets QUIZ/PROJECTS/BONUS too
