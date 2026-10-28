@@ -115,6 +115,7 @@ const SITE_EN = {
   'contact.kicker': '06 — CONTACT', 'contact.heading': 'Next level together?',
   'contact.lead': 'Always up for academic, scientific, or a good One Piece discussion.',
   'contact.replay': '↻ Play again',
+  'song.label': '♪ MY FAVOURITE SONG LATELY', 'song.play': '► LISTEN',
   'footer.note': 'Made with Press Start 2P',
 };
 
@@ -1149,6 +1150,18 @@ $('mute-btn').addEventListener('click', () => {
 });
 document.querySelectorAll('.lang-toggle').forEach(b =>
   b.addEventListener('click', () => applyLang(lang === 'tr' ? 'en' : 'tr')));
+
+// favourite-song: reveal the Spotify player on click (lazy iframe, no autoplay → no blast)
+const songPlay = $('song-play');
+if (songPlay) songPlay.addEventListener('click', () => {
+  const box = $('song-embed');
+  if (box && !box.dataset.loaded) {
+    box.innerHTML = '<iframe src="https://open.spotify.com/embed/track/1YHuqpq9S8rLkOc8XKFA0O?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" loading="lazy" allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>';
+    box.dataset.loaded = '1';
+  }
+  if (box) box.hidden = false;
+  songPlay.hidden = true;
+});
 
 // popup keyboard: answer a quiz with A/B/C or 1/2/3; continue with Enter/Space
 addEventListener('keydown', e => {
