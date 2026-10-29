@@ -1053,7 +1053,7 @@ function enterSite() {
 }
 
 function restartGame() {
-  body.classList.add('mode-game');
+  body.classList.add('mode-game'); fitCanvas();   // size the backing now that the canvas is laid out
   $('game-screen').removeAttribute('aria-hidden');
   beginPlay();
 }
@@ -1119,7 +1119,7 @@ function boot() {
   bindTouch();
   buildLevel();          // so the first frame renders behind the start overlay
   player.x = startX; player.y = (GROUND - 2) * T;
-  body.classList.add('mode-game');
+  body.classList.add('mode-game'); fitCanvas();   // size the backing now that the canvas is laid out
   running = false;       // wait on the start overlay
 }
 boot();
